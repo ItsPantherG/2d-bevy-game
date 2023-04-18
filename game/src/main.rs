@@ -1,5 +1,6 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
+use bevy::input::mouse::{self, MouseMotion};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
@@ -20,13 +21,13 @@ fn main() {
         .add_system(jump_timer_start.in_set(OnUpdate(MovementState::Jumping)))
         .add_system(air_dash_timer_start.in_set(OnUpdate(MovementState::AirDash)))
         .add_system(camera_follow_player)
+        .add_system(spawn_bullet)
         .run()
 }
 
 pub const PLAYER_SPEED: f32 = 500.0;
-pub const GRAVITY: f32 = 4250.;
 pub const JUMP_STRENGTH: f32 = 5000.0;
-pub const AIR_DASH_SPEED: f32 = 1500.0;
+pub const AIR_DASH_SPEED: f32 = 13000.0;
 pub const GRAVITY_STRENGTH: f32 = -1000.0;
 
 #[derive(Component)]
@@ -34,6 +35,9 @@ pub struct Camera;
 
 #[derive(Component)]
 pub struct Player {}
+
+#[derive(Component)]
+pub struct Bullet {}
 
 #[derive(Resource)]
 pub struct JumpTimer {
@@ -57,7 +61,7 @@ pub struct AirDash {
 impl Default for AirDash {
     fn default() -> Self {
         AirDash {
-            timer: Timer::from_seconds(0.1, TimerMode::Repeating),
+            timer: Timer::from_seconds(0.15, TimerMode::Repeating),
             used: false,
         }
     }
@@ -112,16 +116,6 @@ pub fn spawn_game(
             },
             ..default()
         });
-    cmds.spawn(Collider::cuboid(217.5, 40.0))
-        .insert(SpriteBundle {
-            transform: Transform::from_xyz(800.0, 100.0, 1.0),
-            texture: asset_server.load("sprites/ground.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(455.0, 100.0)),
-                ..default()
-            },
-            ..default()
-        });
 
     cmds.spawn((
         SpriteBundle {
@@ -154,6 +148,7 @@ pub fn player_move(
     time: Res<Time>,
     current_state: Res<State<MovementState>>,
     jump_timer: Res<JumpTimer>,
+    air_dash: Res<AirDash>,
 ) {
     for mut controller in controllers.iter_mut() {
         let mut direction = Vec2::ZERO;
@@ -181,11 +176,16 @@ pub fn player_move(
             for output in controllers_output.iter() {
                 let player_movement = output.effective_translation[0];
                 if player_movement > 0.0 {
-                    direction += Vec2::new(1.0, -GRAVITY_STRENGTH / AIR_DASH_SPEED) * AIR_DASH_SPEED
+                    direction += Vec2::new(
+                        air_dash.timer.elapsed_secs(),
+                        -GRAVITY_STRENGTH / AIR_DASH_SPEED,
+                    ) * AIR_DASH_SPEED
                 }
                 if player_movement < 0.0 {
-                    direction +=
-                        Vec2::new(-1.0, -GRAVITY_STRENGTH / AIR_DASH_SPEED) * AIR_DASH_SPEED
+                    direction += Vec2::new(
+                        -air_dash.timer.elapsed_secs(),
+                        -GRAVITY_STRENGTH / AIR_DASH_SPEED,
+                    ) * AIR_DASH_SPEED
                 }
             }
         }
@@ -201,28 +201,16 @@ pub fn player_move(
 }
 
 pub fn camera_follow_player(
-    current_state: Res<State<MovementState>>,
-    mut camera_query: Query<&mut Transform, With<Camera>>,
-    controllers: Query<&KinematicCharacterControllerOutput>,
-    time: Res<Time>,
+    player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
+    mut camera_query: Query<&mut Transform, (With<Camera>, Without<Player>)>,
 ) {
     if let Ok(mut transform_camera) = camera_query.get_single_mut() {
-        for controller in controllers.iter() {
-            let effective_x = f32::trunc(controller.effective_translation[0] * 100.0) / 100.0;
-            let desired_x = f32::trunc(controller.desired_translation[0] * 100.0) / 100.0;
+        if let Ok(player_transform) = player_query.get_single() {
+            let player_translation_x = player_transform.translation[0];
 
-            let delta = controller.effective_translation[0];
-            let mut direction = Vec3::ZERO;
-
-            direction += Vec3::new(effective_x, 0.0, 0.0);
-
-            if current_state.0 == MovementState::AirDash {
-                transform_camera.translation +=
-                    direction.normalize_or_zero() * AIR_DASH_SPEED * time.delta_seconds()
+            if transform_camera.translation[0] != player_translation_x {
+                transform_camera.translation[0] = player_translation_x
             }
-
-            transform_camera.translation +=
-                direction.normalize_or_zero() * PLAYER_SPEED * time.delta_seconds()
         }
     }
 }
@@ -298,6 +286,48 @@ pub fn states(
             next_movement_state.set(MovementState::Falling);
             air_dash.timer.reset();
             println!("State to Falling")
+        }
+    }
+}
+
+pub fn spawn_bullet(
+    mut cmds: Commands,
+    player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
+    mouse_input: Res<Input<MouseButton>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    if mouse_input.just_pressed(MouseButton::Left) {
+        if let Ok(player_transform) = player_query.get_single() {
+            cmds.spawn((
+                SpriteBundle {
+                    transform: Transform::from_xyz(
+                        player_transform.translation[0],
+                        player_transform.translation[1],
+                        0.0,
+                    ),
+                    texture: asset_server.load("sprites/tile_0000.png"),
+                    ..default()
+                },
+                Bullet {},
+            ));
+        }
+    }
+}
+
+pub fn bullet_direction(
+    mut bullet_query: Query<&mut Transform, With<Bullet>>,
+    player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
+    mouse_input: Res<Input<MouseButton>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    if let Some(_position) = window.cursor_position() {
+        if let Ok(player_transform) = player_query.get_single() {
+            let direction = Vec3::ZERO;
+
+            for mut bullet in bullet_query.iter_mut() {}
         }
     }
 }
