@@ -1,6 +1,5 @@
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 
-use bevy::input::mouse::{self, MouseMotion};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
@@ -12,7 +11,7 @@ fn main() {
         // .add_plugin(LogDiagnosticsPlugin::default())
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        // .add_plugin(RapierDebugRenderPlugin::default())
+        .add_plugin(RapierDebugRenderPlugin::default())
         .init_resource::<JumpTimer>()
         .init_resource::<AirDash>()
         .add_startup_system(spawn_game)
@@ -22,10 +21,13 @@ fn main() {
         .add_system(air_dash_timer_start.in_set(OnUpdate(MovementState::AirDash)))
         .add_system(camera_follow_player)
         .add_system(spawn_bullet)
+        .add_system(bullet_direction)
+        .add_system(despawn_bullet_over_time)
         .run()
 }
 
 pub const PLAYER_SPEED: f32 = 500.0;
+pub const BULLET_SPEED: f32 = 1000.0;
 pub const JUMP_STRENGTH: f32 = 5000.0;
 pub const AIR_DASH_SPEED: f32 = 13000.0;
 pub const GRAVITY_STRENGTH: f32 = -1000.0;
@@ -37,7 +39,21 @@ pub struct Camera;
 pub struct Player {}
 
 #[derive(Component)]
-pub struct Bullet {}
+pub struct Bullet {
+    translation: Vec3,
+    direction: Vec2,
+    timer: Timer,
+}
+
+impl Default for Bullet {
+    fn default() -> Self {
+        Bullet {
+            translation: Vec3::ZERO,
+            direction: Vec2::ZERO,
+            timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+        }
+    }
+}
 
 #[derive(Resource)]
 pub struct JumpTimer {
@@ -294,40 +310,67 @@ pub fn spawn_bullet(
     mut cmds: Commands,
     player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
     mouse_input: Res<Input<MouseButton>>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
+    let window = window_query.get_single().unwrap();
+
     if mouse_input.just_pressed(MouseButton::Left) {
-        if let Ok(player_transform) = player_query.get_single() {
-            cmds.spawn((
-                SpriteBundle {
-                    transform: Transform::from_xyz(
-                        player_transform.translation[0],
-                        player_transform.translation[1],
-                        0.0,
-                    ),
-                    texture: asset_server.load("sprites/tile_0000.png"),
-                    ..default()
-                },
-                Bullet {},
-            ));
+        if let Some(_position) = window.cursor_position() {
+            if let Ok(player_transform) = player_query.get_single() {
+                cmds.spawn((
+                    SpriteBundle {
+                        transform: Transform::from_xyz(
+                            player_transform.translation[0],
+                            player_transform.translation[1],
+                            0.0,
+                        ),
+                        texture: asset_server.load("sprites/tile_0000.png"),
+                        ..default()
+                    },
+                    Bullet {
+                        translation: player_transform.translation,
+                        direction: _position,
+                        ..default()
+                    },
+                ));
+            }
         }
     }
 }
 
 pub fn bullet_direction(
-    mut bullet_query: Query<&mut Transform, With<Bullet>>,
-    player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
-    mouse_input: Res<Input<MouseButton>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    mut bullet_query: Query<(&mut Transform, &Bullet), With<Bullet>>,
+    time: Res<Time>,
 ) {
-    let window = window_query.get_single().unwrap();
+    let mut direction = Vec3::ZERO;
 
-    if let Some(_position) = window.cursor_position() {
-        if let Ok(player_transform) = player_query.get_single() {
-            let direction = Vec3::ZERO;
+    for (mut transform, bullet) in bullet_query.iter_mut() {
+        direction += Vec3::new(
+            bullet.direction[0] - bullet.translation[0],
+            bullet.direction[1] - bullet.translation[1],
+            0.0,
+        );
 
-            for mut bullet in bullet_query.iter_mut() {}
+        direction = direction.normalize_or_zero() * BULLET_SPEED * time.delta_seconds();
+
+        transform.translation += direction
+    }
+}
+
+pub fn despawn_bullet_on_collision() {}
+
+pub fn despawn_bullet_over_time(
+    mut cmds: Commands,
+    mut bullet_query: Query<(Entity, &mut Bullet)>,
+    time: Res<Time>,
+) {
+    for (entity, mut bullet) in bullet_query.iter_mut() {
+        bullet.timer.tick(time.delta());
+
+        if bullet.timer.just_finished() {
+            cmds.entity(entity).despawn();
         }
     }
 }
