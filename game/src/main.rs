@@ -11,7 +11,7 @@ fn main() {
         // .add_plugin(LogDiagnosticsPlugin::default())
         // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        .add_plugin(RapierDebugRenderPlugin::default())
+        // .add_plugin(RapierDebugRenderPlugin::default())
         .init_resource::<JumpTimer>()
         .init_resource::<AirDash>()
         .add_startup_system(spawn_game)
@@ -22,6 +22,7 @@ fn main() {
         .add_system(camera_follow_player)
         .add_system(spawn_bullet)
         .add_system(bullet_direction)
+        .add_system(despawn_bullet_on_collision)
         .add_system(despawn_bullet_over_time)
         .run()
 }
@@ -40,7 +41,6 @@ pub struct Player {}
 
 #[derive(Component)]
 pub struct Bullet {
-    translation: Vec3,
     direction: Vec2,
     timer: Timer,
 }
@@ -48,7 +48,6 @@ pub struct Bullet {
 impl Default for Bullet {
     fn default() -> Self {
         Bullet {
-            translation: Vec3::ZERO,
             direction: Vec2::ZERO,
             timer: Timer::from_seconds(2.0, TimerMode::Repeating),
         }
@@ -152,14 +151,18 @@ pub fn spawn_game(
         ..default()
     })
     .insert(RigidBody::KinematicPositionBased)
+    .insert(CollisionGroups {
+        memberships: Group::GROUP_4,
+        filters: Group::GROUP_2,
+    })
     .insert(Collider::capsule_x(20.0, 20.0))
     .insert(LockedAxes::ROTATION_LOCKED)
     .insert(GravityScale(5.0));
 }
 
 pub fn player_move(
-    mut controllers: Query<&mut KinematicCharacterController>,
-    controllers_output: Query<&KinematicCharacterControllerOutput>,
+    mut controllers: Query<&mut KinematicCharacterController, With<Player>>,
+    controllers_output: Query<&KinematicCharacterControllerOutput, With<Player>>,
     keyboard_input: Res<Input<KeyCode>>,
     time: Res<Time>,
     current_state: Res<State<MovementState>>,
@@ -240,7 +243,7 @@ pub fn air_dash_timer_start(mut air_dash_timer: ResMut<AirDash>, time: Res<Time>
 }
 
 pub fn states(
-    controllers: Query<&KinematicCharacterControllerOutput>,
+    controllers: Query<&KinematicCharacterControllerOutput, With<Player>>,
     current_state: Res<State<MovementState>>,
     mut next_movement_state: ResMut<NextState<MovementState>>,
     keyboard_input: Res<Input<KeyCode>>,
@@ -329,37 +332,53 @@ pub fn spawn_bullet(
                         ..default()
                     },
                     Bullet {
-                        translation: player_transform.translation,
-                        direction: _position,
+                        direction: _position - Vec2::new(640.0, player_transform.translation[1]),
                         ..default()
                     },
-                ));
+                ))
+                .insert(KinematicCharacterController {
+                    filter_groups: Some(CollisionGroups {
+                        memberships: Group::GROUP_4,
+                        filters: Group::GROUP_2,
+                    }),
+                    ..default()
+                })
+                .insert(Collider::ball(10.0))
+                .insert(RigidBody::Dynamic)
+                .insert(CollisionGroups {
+                    memberships: Group::GROUP_4,
+                    filters: Group::GROUP_2,
+                });
             }
         }
     }
 }
 
 pub fn bullet_direction(
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    mut bullet_query: Query<(&mut Transform, &Bullet), With<Bullet>>,
+    mut bullet_query: Query<(&mut KinematicCharacterController, &Bullet), With<Bullet>>,
     time: Res<Time>,
 ) {
-    let mut direction = Vec3::ZERO;
+    let mut direction = Vec2::ZERO;
 
     for (mut transform, bullet) in bullet_query.iter_mut() {
-        direction += Vec3::new(
-            bullet.direction[0] - bullet.translation[0],
-            bullet.direction[1] - bullet.translation[1],
-            0.0,
-        );
+        direction += Vec2::new(bullet.direction[0], bullet.direction[1]);
 
         direction = direction.normalize_or_zero() * BULLET_SPEED * time.delta_seconds();
 
-        transform.translation += direction
+        transform.translation = Some(direction)
     }
 }
 
-pub fn despawn_bullet_on_collision() {}
+pub fn despawn_bullet_on_collision(
+    mut cmds: Commands,
+    bullets_output: Query<(Entity, &KinematicCharacterControllerOutput), With<Bullet>>,
+) {
+    for (entity, output) in bullets_output.iter() {
+        if !output.collisions.is_empty() {
+            cmds.entity(entity).despawn()
+        }
+    }
+}
 
 pub fn despawn_bullet_over_time(
     mut cmds: Commands,
