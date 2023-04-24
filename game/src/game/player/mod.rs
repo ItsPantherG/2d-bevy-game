@@ -23,7 +23,8 @@ impl Plugin for PlayerPlugin {
             .add_system(jump_timer_start.in_set(OnUpdate(MovementState::Jumping)))
             .add_system(air_dash_timer_start.in_set(OnUpdate(MovementState::AirDash)))
             .add_system(spawn_flame.in_schedule(OnEnter(MovementState::AirDash)))
-            // .add_system(despawn_flame.in_schedule(OnExit(MovementState::AirDash)))
+            .add_system(flame_follow_player.in_set(OnUpdate(MovementState::AirDash)))
+            .add_system(despawn_flame.in_schedule(OnExit(MovementState::AirDash)))
             .add_system(animate_sprite);
     }
 }

@@ -206,6 +206,7 @@ pub fn spawn_flame(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     player_query: Query<&Transform, With<Player>>,
+    keyboard_input: Res<Input<KeyCode>>,
 ) {
     if let Ok(transform_player) = player_query.get_single() {
         let texture_handle = asset_server.load("animations/burning_loop_1.png");
@@ -215,6 +216,15 @@ pub fn spawn_flame(
 
         // Use only the subset of sprites in the sheet that make up the run animation
         let animation_indices = AnimationIndices { first: 1, last: 7 };
+
+        let mut rotation = 0.0;
+
+        if keyboard_input.pressed(KeyCode::D) {
+            rotation = 1.59
+        }
+        if keyboard_input.pressed(KeyCode::A) {
+            rotation = -1.59
+        }
 
         commands.spawn((
             SpriteSheetBundle {
@@ -226,7 +236,7 @@ pub fn spawn_flame(
                         transform_player.translation.y,
                         transform_player.translation.z,
                     ),
-                    rotation: Quat::from_rotation_z(1.59),
+                    rotation: Quat::from_rotation_z(rotation),
                     scale: Vec3::new(3.0, 3.0, 3.0),
                 },
                 ..default()
@@ -234,6 +244,31 @@ pub fn spawn_flame(
             animation_indices,
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
         ));
+    }
+}
+
+pub fn flame_follow_player(
+    mut flame_query: Query<&mut Transform, (With<AnimationIndices>, Without<Player>)>,
+    player_query: Query<&Transform, (With<Player>, Without<AnimationIndices>)>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    if let Ok(transform_player) = player_query.get_single() {
+        if let Ok(mut transform_flame) = flame_query.get_single_mut() {
+            if keyboard_input.pressed(KeyCode::D) {
+                transform_flame.translation = Vec3::new(
+                    transform_player.translation.x - 70.0,
+                    transform_player.translation.y - 7.0,
+                    transform_player.translation.z,
+                )
+            }
+            if keyboard_input.pressed(KeyCode::A) {
+                transform_flame.translation = Vec3::new(
+                    transform_player.translation.x + 70.0,
+                    transform_player.translation.y - 7.0,
+                    transform_player.translation.z,
+                )
+            }
+        }
     }
 }
 
