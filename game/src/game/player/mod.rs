@@ -5,6 +5,8 @@ mod systems;
 
 use bevy::prelude::*;
 
+use crate::GameState;
+
 use bullets::*;
 use resources::*;
 use systems::*;
@@ -13,19 +15,35 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<MovementState>()
+        app
+            // Add State
+            .add_state::<MovementState>()
+            // Add plugins
             .add_plugin(BulletPlugin)
+            // Add Resources
             .init_resource::<JumpTimer>()
             .init_resource::<AirDash>()
-            .add_startup_system(spawn_player)
-            .add_system(player_move)
-            .add_system(states)
-            .add_system(jump_timer_start.in_set(OnUpdate(MovementState::Jumping)))
-            .add_system(air_dash_timer_start.in_set(OnUpdate(MovementState::AirDash)))
-            .add_system(spawn_flame.in_schedule(OnEnter(MovementState::AirDash)))
-            .add_system(flame_follow_player.in_set(OnUpdate(MovementState::AirDash)))
-            .add_system(despawn_flame.in_schedule(OnExit(MovementState::AirDash)))
-            .add_system(animate_sprite);
+            // On Enter State
+            .add_system(spawn_player.in_schedule(OnEnter(GameState::Game)))
+            .add_system(
+                spawn_flame
+                    .in_schedule(OnEnter(MovementState::AirDash))
+                    .in_set(OnUpdate(GameState::Game)),
+            )
+            // Add Systems
+            .add_systems(
+                (
+                    player_move,
+                    states,
+                    jump_timer_start.in_set(OnUpdate(MovementState::Jumping)),
+                    air_dash_timer_start.in_set(OnUpdate(MovementState::AirDash)),
+                    flame_follow_player.in_set(OnUpdate(MovementState::AirDash)),
+                    animate_sprite,
+                )
+                    .in_set(OnUpdate(GameState::Game)),
+            )
+            // On Exit State
+            .add_system(despawn_flame.in_schedule(OnExit(MovementState::AirDash)));
     }
 }
 

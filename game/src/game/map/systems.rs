@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
+use super::components::*;
 use super::resources::*;
 use crate::game::player::compoments::*;
 
@@ -10,8 +11,8 @@ const FLOOR_WIDTH: f32 = 430.0;
 
 pub fn spawn_map(mut cmds: Commands, asset_server: Res<AssetServer>) {
     for i in 0..4 {
-        cmds.spawn(Collider::cuboid(217.5, 40.0))
-            .insert(SpriteBundle {
+        cmds.spawn(Collider::cuboid(217.5, 40.0)).insert((
+            SpriteBundle {
                 transform: Transform::from_xyz(0.0 + (i as f32 * 430.0), 0.0, 1.0),
                 texture: asset_server.load("sprites/ground.png"),
                 sprite: Sprite {
@@ -19,7 +20,9 @@ pub fn spawn_map(mut cmds: Commands, asset_server: Res<AssetServer>) {
                     ..default()
                 },
                 ..default()
-            });
+            },
+            Chunk {},
+        ));
     }
 }
 
@@ -53,8 +56,8 @@ pub fn generate_random_chunk(
 
         for i in 0..4 {
             if i as f32 == gap_1 {
-                cmds.spawn(Collider::cuboid(217.5, 40.0))
-                    .insert(SpriteBundle {
+                cmds.spawn(Collider::cuboid(217.5, 40.0)).insert((
+                    SpriteBundle {
                         transform: Transform::from_xyz(
                             (CHUNK_WIDTH * (current_chunk.value + 1.0)) + (i as f32 * FLOOR_WIDTH),
                             height_platform_1,
@@ -66,10 +69,12 @@ pub fn generate_random_chunk(
                             ..default()
                         },
                         ..default()
-                    });
+                    },
+                    Chunk {},
+                ));
             } else if i as f32 == gap_2 {
-                cmds.spawn(Collider::cuboid(217.5, 40.0))
-                    .insert(SpriteBundle {
+                cmds.spawn(Collider::cuboid(217.5, 40.0)).insert((
+                    SpriteBundle {
                         transform: Transform::from_xyz(
                             (CHUNK_WIDTH * (current_chunk.value + 1.0)) + (i as f32 * FLOOR_WIDTH),
                             height_platform_2,
@@ -81,10 +86,12 @@ pub fn generate_random_chunk(
                             ..default()
                         },
                         ..default()
-                    });
+                    },
+                    Chunk {},
+                ));
             } else {
-                cmds.spawn(Collider::cuboid(217.5, 40.0))
-                    .insert(SpriteBundle {
+                cmds.spawn(Collider::cuboid(217.5, 40.0)).insert((
+                    SpriteBundle {
                         transform: Transform::from_xyz(
                             (CHUNK_WIDTH * (current_chunk.value + 1.0)) + (i as f32 * FLOOR_WIDTH),
                             0.0,
@@ -96,7 +103,9 @@ pub fn generate_random_chunk(
                             ..default()
                         },
                         ..default()
-                    });
+                    },
+                    Chunk {},
+                ));
             }
         }
     }

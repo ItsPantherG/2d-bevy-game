@@ -1,9 +1,12 @@
-mod resources;
+pub mod components;
+pub mod resources;
 mod systems;
 
 use bevy::prelude::*;
 
 use systems::*;
+
+use crate::GameState;
 
 use self::resources::CurrentChunk;
 
@@ -11,9 +14,12 @@ pub struct MapPlugin;
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<CurrentChunk>()
-            .add_startup_system(spawn_map)
-            .add_system(change_chunks)
-            .add_system(generate_random_chunk);
+        app
+            // Add Resources
+            .init_resource::<CurrentChunk>()
+            // On Enter State
+            .add_system(spawn_map.in_schedule(OnEnter(GameState::Game)))
+            // Add Systems
+            .add_systems((change_chunks, generate_random_chunk).in_set(OnUpdate(GameState::Game)));
     }
 }
