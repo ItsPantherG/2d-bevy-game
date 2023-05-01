@@ -5,7 +5,6 @@ use bevy::diagnostic::{ FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin };
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use bevy::window::PrimaryWindow;
 
 use game::GamePlugin;
 use mainmenu::MainMenuPlugin;
