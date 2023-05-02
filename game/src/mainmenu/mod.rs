@@ -16,9 +16,12 @@ impl Plugin for MainMenuPlugin {
     app
       // On Enter Game State
       .add_system(spawn_main_menu.in_schedule(OnEnter(GameState::MainMenu)))
-      // On Exit Game State
-      .add_system(despawn_main_menu.in_schedule(OnExit(GameState::MainMenu)))
+
+      // Systems
       .add_system(play_button_interaction.in_set(OnUpdate(GameState::MainMenu)))
-      .add_system(quit_button_interaction.in_set(OnUpdate(GameState::MainMenu)));
+      .add_system(quit_button_interaction.in_set(OnUpdate(GameState::MainMenu)))
+
+      // On Exit Game State
+      .add_system(despawn_main_menu.in_schedule(OnExit(GameState::MainMenu)));
   }
 }
