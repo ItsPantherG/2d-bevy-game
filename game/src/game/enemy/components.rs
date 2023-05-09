@@ -5,6 +5,8 @@ pub struct EnemySaltThrower {}
 
 #[derive(Component)]
 pub struct EnemyBullet {
-    pub dirction: i32,
-    pub velocity_y: f32,
+    pub desired_direction: f32,
 }
+
+#[derive(Component, Deref, DerefMut)]
+pub struct EnemyBulletTimer(pub Timer);

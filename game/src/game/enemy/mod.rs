@@ -18,8 +18,9 @@ impl Plugin for EnemyPlugin {
             .add_systems(
                 (
                     enemy_shoot_player,
-                    despawn_enemy_bullet,
+                    despawn_enemy_bullet_on_collision,
                     enemy_bullet_direction,
+                    start_enemy_bullet_timer,
                 )
                     .in_set(OnUpdate(GameState::Game)),
             );
