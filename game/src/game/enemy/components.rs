@@ -10,3 +10,6 @@ pub struct EnemyBullet {
 
 #[derive(Component, Deref, DerefMut)]
 pub struct EnemyBulletTimer(pub Timer);
+
+#[derive(Component, Deref, DerefMut)]
+pub struct EnemyBulletDespawnTimer(pub Timer);

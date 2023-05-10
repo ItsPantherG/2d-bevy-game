@@ -85,11 +85,21 @@ pub fn enemy_shoot_player(
 }
 
 pub fn start_enemy_bullet_timer(
-    mut enemy_bullet_timer_query: Query<&mut EnemyBulletTimer, With<EnemyBulletTimer>>,
+    mut enemy_bullet_timer_query: Query<
+        &mut EnemyBulletTimer,
+        (With<EnemyBulletTimer>, Without<EnemyBulletDespawnTimer>),
+    >,
+    mut enemy_bullet_despawn_timer_query: Query<
+        &mut EnemyBulletTimer,
+        (With<EnemyBulletDespawnTimer>, Without<EnemyBulletTimer>),
+    >,
     time: Res<Time>,
 ) {
     for mut timer in enemy_bullet_timer_query.iter_mut() {
         timer.tick(time.delta());
+    }
+    for mut despawn_timer in enemy_bullet_despawn_timer_query.iter_mut() {
+        despawn_timer.tick(time.delta());
     }
 }
 

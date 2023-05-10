@@ -8,8 +8,6 @@ use super::MovementState;
 use crate::game::enemy::components::*;
 use crate::GameState;
 
-pub const PLAYER_SIZE: Vec2 = Vec2::new(100.0, 68.0);
-pub const PLAYER_SIZE_HALF: Vec2 = Vec2::new(50.0, 34.0);
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const JUMP_STRENGTH: f32 = 5000.0;
 pub const AIR_DASH_SPEED: f32 = 13000.0;
