@@ -23,8 +23,8 @@ fn main() {
             }),
             ..default()
         }))
-        // .add_plugin(LogDiagnosticsPlugin::default())
-        // .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         // .add_plugin(RapierDebugRenderPlugin::default())
         // Add Plugins

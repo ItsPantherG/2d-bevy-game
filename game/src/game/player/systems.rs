@@ -5,7 +5,11 @@ use bevy_rapier2d::prelude::*;
 use super::compoments::*;
 use super::resources::*;
 use super::MovementState;
+use crate::game::enemy::components::*;
+use crate::GameState;
 
+pub const PLAYER_SIZE: Vec2 = Vec2::new(100.0, 68.0);
+pub const PLAYER_SIZE_HALF: Vec2 = Vec2::new(50.0, 34.0);
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const JUMP_STRENGTH: f32 = 5000.0;
 pub const AIR_DASH_SPEED: f32 = 13000.0;
@@ -43,7 +47,8 @@ pub fn spawn_player(
     })
     .insert(Collider::capsule_x(20.0, 20.0))
     .insert(LockedAxes::ROTATION_LOCKED)
-    .insert(GravityScale(5.0));
+    .insert(GravityScale(5.0))
+    .insert(Name::new("Player"));
 }
 
 pub fn player_move(
@@ -275,5 +280,23 @@ pub fn flame_follow_player(
 pub fn despawn_flame(mut cmds: Commands, flame_query: Query<Entity, With<AnimationIndices>>) {
     if let Ok(entity) = flame_query.get_single() {
         cmds.entity(entity).despawn()
+    }
+}
+
+pub fn player_die_on_hit(
+    mut cmds: Commands,
+    bullet_query: Query<&KinematicCharacterControllerOutput, (With<EnemyBullet>, Without<Player>)>,
+    player_query: Query<Entity, (With<Player>, Without<EnemyBullet>)>,
+    mut next_game_state: ResMut<NextState<GameState>>,
+) {
+    if let Ok(player_entity) = player_query.get_single() {
+        for bullet_output in bullet_query.iter() {
+            if !bullet_output.collisions.is_empty() {
+                if bullet_output.collisions[0].entity == player_entity {
+                    cmds.entity(player_entity).despawn();
+                    next_game_state.set(GameState::MainMenu)
+                }
+            }
+        }
     }
 }

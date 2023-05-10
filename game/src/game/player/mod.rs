@@ -37,10 +37,12 @@ impl Plugin for PlayerPlugin {
                 (
                     player_move,
                     states,
+                    player_die_on_hit,
+                    // OnUpdate Systems
                     jump_timer_start.in_set(OnUpdate(MovementState::Jumping)),
                     air_dash_timer_start.in_set(OnUpdate(MovementState::AirDash)),
                     flame_follow_player.in_set(OnUpdate(MovementState::AirDash)),
-                    animate_sprite,
+                    animate_sprite.in_set(OnUpdate(MovementState::AirDash)),
                 )
                     .in_set(OnUpdate(InGameState::Playing))
                     .in_set(OnUpdate(GameState::Game)),
