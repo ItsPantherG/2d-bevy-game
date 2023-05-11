@@ -20,7 +20,7 @@ pub fn spawn_emeny_salt_thrower(
                 transform: Transform::from_xyz(
                     (current_chunk.value * CHUNK_WIDTH) + CHUNK_WIDTH,
                     60.0,
-                    0.0,
+                    10.0,
                 ),
                 texture: asset_server.load("sprites/SlimeOrange_00000.png"),
                 sprite: Sprite {

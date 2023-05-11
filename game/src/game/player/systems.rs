@@ -22,7 +22,7 @@ pub fn spawn_player(
 
     cmds.spawn((
         SpriteBundle {
-            transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+            transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 100.0),
             texture: asset_server.load("sprites/SlimeBasic_00000.png"),
             sprite: Sprite {
                 custom_size: Some(Vec2::new(100.0, 68.0)),
