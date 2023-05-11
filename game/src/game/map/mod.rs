@@ -20,6 +20,7 @@ impl Plugin for MapPlugin {
             // On Enter State
             .add_system(spawn_map.in_schedule(OnEnter(GameState::Game)))
             // Add Systems
-            .add_systems((change_chunks, generate_random_chunk).in_set(OnUpdate(GameState::Game)));
+            .add_systems((change_chunks, generate_random_chunk).in_set(OnUpdate(GameState::Game)))
+            .add_system(despawn_map.in_schedule(OnExit(GameState::Game)));
     }
 }

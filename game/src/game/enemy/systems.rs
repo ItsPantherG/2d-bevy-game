@@ -140,15 +140,27 @@ pub fn enemy_bullet_direction(
 
 pub fn despawn_enemy_bullet_on_collision(
     mut cmds: Commands,
-    enemy_bullet_query: Query<(Entity, &KinematicCharacterControllerOutput), With<EnemyBullet>>,
+    enemy_bullet_query: Query<
+        (Entity, &KinematicCharacterControllerOutput),
+        (With<EnemyBullet>, Without<Player>),
+    >,
+    player_query: Query<Entity, (With<Player>, Without<EnemyBullet>)>,
 ) {
     if let Ok((entity, output)) = enemy_bullet_query.get_single() {
-        if output.grounded {
-            cmds.entity(entity).despawn()
-        }
+        if let Ok(player_entity) = player_query.get_single() {
+            if !output.collisions.is_empty() {
+                if output.collisions[0].entity == player_entity {
+                    cmds.entity(entity).despawn()
+                }
+            }
 
-        if output.effective_translation.y < -10.0 {
-            cmds.entity(entity).despawn()
+            if output.grounded {
+                cmds.entity(entity).despawn()
+            }
+
+            if output.effective_translation.y < -10.0 {
+                cmds.entity(entity).despawn()
+            }
         }
     }
 }

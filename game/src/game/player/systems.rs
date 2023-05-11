@@ -291,8 +291,8 @@ pub fn player_die_on_hit(
         for bullet_output in bullet_query.iter() {
             if !bullet_output.collisions.is_empty() {
                 if bullet_output.collisions[0].entity == player_entity {
-                    cmds.entity(player_entity).despawn();
-                    next_game_state.set(GameState::MainMenu)
+                    // cmds.entity(player_entity).despawn();
+                    // next_game_state.set(GameState::MainMenu)
                 }
             }
         }
