@@ -1,5 +1,6 @@
 pub mod camera;
 pub mod enemy;
+mod game_ui;
 pub mod map;
 pub mod player;
 mod score;
@@ -11,6 +12,7 @@ use super::GameState;
 
 use camera::*;
 use enemy::*;
+use game_ui::*;
 use map::*;
 use player::*;
 use score::*;
@@ -21,6 +23,7 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<InGameState>()
+            .add_plugin(GameUiPlugin)
             .add_plugin(ScorePlugin)
             .add_plugin(EnemyPlugin)
             .add_plugin(MapPlugin)

@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
@@ -15,7 +14,7 @@ pub fn spawn_map(mut cmds: Commands, asset_server: Res<AssetServer>) {
         cmds.spawn(Collider::cuboid(217.5, 40.0)).insert((
             SpriteBundle {
                 transform: Transform::from_xyz(0.0 + (i as f32 * 430.0), 0.0, 101.0),
-                texture: asset_server.load("sprites/ground.png"),
+                texture: asset_server.load("sprites/large_platform.png"),
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(455.0, 100.0)),
                     ..default()
@@ -61,9 +60,6 @@ pub fn generate_random_chunk(
     current_chunk: Res<CurrentChunk>,
 ) {
     if current_chunk.is_changed() && current_chunk.value >= 0.0 {
-        //random nnumbers
-        let random_2 = rand::thread_rng().gen_range(0..2);
-
         /*
         ======== CHUNK SPAWNING ========
         - A chunk is 1720 pixels in width and will be spawned as soon as the player enters a new chunk. The spawning shunk will be one chunk ahead of the player.
@@ -82,6 +78,9 @@ pub fn generate_random_chunk(
         - The rest of the iterations a large platform will spawn that leaves no gap in between
 
         */
+
+        // Start value per chunk
+        let start_chunk_value = CHUNK_WIDTH * (current_chunk.value + 1.0);
 
         //Ground
         //amount of platforms per chunk, 2 or 3
@@ -104,103 +103,59 @@ pub fn generate_random_chunk(
         for i in 0..4 {
             // Platforms Spawning======================================================================
             if i as f32 == gap_1 {
-                cmds.spawn(Collider::cuboid(113.5, 40.0)).insert((
-                    SpriteBundle {
-                        transform: Transform::from_xyz(
-                            (CHUNK_WIDTH * (current_chunk.value + 1.0))
-                                + (i as f32 * FLOOR_WIDTH + random_platform_gap),
-                            height_platform_1,
-                            101.0,
-                        ),
-                        texture: asset_server.load("sprites/normal_platform.png"),
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(227.0, 100.0)),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    Chunk {},
-                ));
+                map_spawn_normal_platform(
+                    &mut cmds,
+                    &start_chunk_value,
+                    &asset_server,
+                    &i,
+                    &random_platform_gap,
+                    &height_platform_1,
+                    &101.0,
+                );
 
                 if rand::thread_rng().gen_range(0..2) == 1 {
-                    cmds.spawn((
-                        SpriteBundle {
-                            transform: Transform::from_xyz(
-                                (CHUNK_WIDTH * (current_chunk.value + 1.0))
-                                    + (i as f32 * FLOOR_WIDTH
-                                        + random_platform_gap
-                                        + rand::thread_rng().gen_range(-40.0..40.0)),
-                                height_platform_1 + 90.0,
-                                0.0,
-                            ),
-                            texture: asset_server.load("sprites/grass_1.png"),
-                            sprite: Sprite {
-                                custom_size: Some(Vec2::new(100.0, 98.0)),
-                                ..default()
-                            },
-                            ..default()
-                        },
-                        Background {},
-                    ));
+                    map_spawn_grass_1(
+                        &mut cmds,
+                        &start_chunk_value,
+                        &asset_server,
+                        &i,
+                        &(random_platform_gap + rand::thread_rng().gen_range(-40.0..40.0)),
+                        &(height_platform_1 + 90.0),
+                        &0.0,
+                    );
                 }
             } else if i as f32 == gap_2 {
-                cmds.spawn(Collider::cuboid(113.5, 40.0)).insert((
-                    SpriteBundle {
-                        transform: Transform::from_xyz(
-                            (CHUNK_WIDTH * (current_chunk.value + 1.0))
-                                + (i as f32 * FLOOR_WIDTH + random_platform_gap),
-                            height_platform_2,
-                            101.0,
-                        ),
-                        texture: asset_server.load("sprites/normal_platform.png"),
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(227.0, 100.0)),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    Chunk {},
-                ));
+                map_spawn_normal_platform(
+                    &mut cmds,
+                    &start_chunk_value,
+                    &asset_server,
+                    &i,
+                    &random_platform_gap,
+                    &height_platform_2,
+                    &101.0,
+                );
 
                 if rand::thread_rng().gen_range(0..2) == 1 {
-                    cmds.spawn((
-                        SpriteBundle {
-                            transform: Transform::from_xyz(
-                                (CHUNK_WIDTH * (current_chunk.value + 1.0))
-                                    + (i as f32 * FLOOR_WIDTH
-                                        + random_platform_gap
-                                        + rand::thread_rng().gen_range(-40.0..40.0)),
-                                height_platform_2 + 90.0,
-                                0.0,
-                            ),
-                            texture: asset_server.load("sprites/grass_1.png"),
-                            sprite: Sprite {
-                                custom_size: Some(Vec2::new(100.0, 98.0)),
-                                ..default()
-                            },
-                            ..default()
-                        },
-                        Background {},
-                    ));
+                    map_spawn_grass_1(
+                        &mut cmds,
+                        &start_chunk_value,
+                        &asset_server,
+                        &i,
+                        &(random_platform_gap + rand::thread_rng().gen_range(-40.0..40.0)),
+                        &(height_platform_2 + 90.0),
+                        &0.0,
+                    );
                 }
             } else if i as f32 == gap_3 && gap_3 != 8.0 {
-                cmds.spawn(Collider::cuboid(113.5, 40.0)).insert((
-                    SpriteBundle {
-                        transform: Transform::from_xyz(
-                            (CHUNK_WIDTH * (current_chunk.value + 1.0))
-                                + (i as f32 * FLOOR_WIDTH + random_platform_gap),
-                            height_platform_2,
-                            101.0,
-                        ),
-                        texture: asset_server.load("sprites/normal_platform.png"),
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(227.0, 100.0)),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    Chunk {},
-                ));
+                map_spawn_normal_platform(
+                    &mut cmds,
+                    &start_chunk_value,
+                    &asset_server,
+                    &i,
+                    &random_platform_gap,
+                    &height_platform_2,
+                    &101.0,
+                );
             }
 
             // Ground Spawning======================================================================
@@ -209,170 +164,278 @@ pub fn generate_random_chunk(
                 && i as f32 != gap_3
                 && rand::thread_rng().gen_range(0..4) > 2
             {
-                cmds.spawn(Collider::cuboid(58.5, 40.0)).insert((
-                    SpriteBundle {
-                        transform: Transform::from_xyz(
-                            (CHUNK_WIDTH * (current_chunk.value + 1.0)) + (i as f32 * FLOOR_WIDTH),
-                            0.0,
-                            101.0,
-                        ),
-                        texture: asset_server.load("sprites/small_platform.png"),
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(117.0, 100.0)),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    Chunk {},
-                ));
+                map_spawn_small_platform(
+                    &mut cmds,
+                    &start_chunk_value,
+                    &asset_server,
+                    &i,
+                    &0.0,
+                    &0.0,
+                    &101.0,
+                );
 
                 if rand::thread_rng().gen_range(0..2) > 1 {
-                    cmds.spawn(SpriteBundle {
-                        transform: Transform::from_xyz(
-                            (CHUNK_WIDTH * (current_chunk.value + 1.0)) + (i as f32 * FLOOR_WIDTH),
-                            90.0,
-                            0.0,
-                        ),
-                        texture: asset_server.load("sprites/grass_3.png"),
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(100.0, 98.0)),
-                            ..default()
-                        },
-                        ..default()
-                    });
+                    map_spawn_grass_3(
+                        &mut cmds,
+                        &start_chunk_value,
+                        &asset_server,
+                        &i,
+                        &0.0,
+                        &90.0,
+                        &0.0,
+                    );
                 }
             } else if i as f32 == normal_platform_place {
-                cmds.spawn(Collider::cuboid(113.5, 40.0)).insert((
-                    SpriteBundle {
-                        transform: Transform::from_xyz(
-                            (CHUNK_WIDTH * (current_chunk.value + 1.0)) + (i as f32 * FLOOR_WIDTH),
-                            0.0,
-                            101.0,
-                        ),
-                        texture: asset_server.load("sprites/normal_platform.png"),
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(227.0, 100.0)),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    Chunk {},
-                ));
+                map_spawn_normal_platform(
+                    &mut cmds,
+                    &start_chunk_value,
+                    &asset_server,
+                    &i,
+                    &0.0,
+                    &0.0,
+                    &101.0,
+                );
             } else {
-                cmds.spawn(Collider::cuboid(217.5, 40.0)).insert((
-                    SpriteBundle {
-                        transform: Transform::from_xyz(
-                            (CHUNK_WIDTH * (current_chunk.value + 1.0)) + (i as f32 * FLOOR_WIDTH),
-                            0.0,
-                            101.0,
-                        ),
-                        texture: asset_server.load("sprites/ground.png"),
-                        sprite: Sprite {
-                            custom_size: Some(Vec2::new(455.0, 100.0)),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    Chunk {},
-                ));
+                map_spawn_large_platform(
+                    &mut cmds,
+                    &start_chunk_value,
+                    &asset_server,
+                    &i,
+                    &0.0,
+                    &101.0,
+                );
 
                 if rand::thread_rng().gen_range(0..5) == 1 {
-                    cmds.spawn((
-                        SpriteBundle {
-                            transform: Transform::from_xyz(
-                                (CHUNK_WIDTH * (current_chunk.value + 1.0))
-                                    + (i as f32 * FLOOR_WIDTH
-                                        + rand::thread_rng().gen_range(-100.0..100.0)),
-                                100.0,
-                                0.0,
-                            ),
-                            texture: asset_server.load("sprites/rock_1.png"),
-                            sprite: Sprite {
-                                custom_size: Some(Vec2::new(250.0, 127.0)),
-                                ..default()
-                            },
-                            ..default()
-                        },
-                        Background {},
-                    ));
+                    map_spawn_rock_1(
+                        &mut cmds,
+                        &start_chunk_value,
+                        &asset_server,
+                        &i,
+                        &(rand::thread_rng().gen_range(-100.0..100.0)),
+                        &100.0,
+                        &0.0,
+                    );
                 } else if rand::thread_rng().gen_range(0..6) == 0 {
-                    cmds.spawn((
-                        SpriteBundle {
-                            transform: Transform::from_xyz(
-                                (CHUNK_WIDTH * (current_chunk.value + 1.0))
-                                    + (i as f32 * FLOOR_WIDTH
-                                        + rand::thread_rng().gen_range(-100.0..100.0)),
-                                150.0,
-                                0.0,
-                            ),
-                            texture: asset_server.load("sprites/rock_3.png"),
-                            sprite: Sprite {
-                                custom_size: Some(Vec2::new(300.0, 257.0)),
-                                ..default()
-                            },
-                            ..default()
-                        },
-                        Background {},
-                    ));
+                    map_spawn_rock_3(
+                        &mut cmds,
+                        &start_chunk_value,
+                        &asset_server,
+                        &i,
+                        &(rand::thread_rng().gen_range(-100.0..100.0)),
+                        &125.0,
+                        &0.0,
+                    );
                 }
 
                 if rand::thread_rng().gen_range(0..2) == 1 {
-                    cmds.spawn((
-                        SpriteBundle {
-                            transform: Transform::from_xyz(
-                                (CHUNK_WIDTH * (current_chunk.value + 1.0))
-                                    + (i as f32 * FLOOR_WIDTH
-                                        + random_platform_gap
-                                        + rand::thread_rng().gen_range(-60.0..30.0)),
-                                90.0,
-                                0.0,
-                            ),
-                            texture: asset_server.load("sprites/grass_1.png"),
-                            sprite: Sprite {
-                                custom_size: Some(Vec2::new(100.0, 98.0)),
-                                ..default()
-                            },
-                            ..default()
-                        },
-                        Background {},
-                    ));
+                    map_spawn_grass_1(
+                        &mut cmds,
+                        &start_chunk_value,
+                        &asset_server,
+                        &i,
+                        &(random_platform_gap + rand::thread_rng().gen_range(-60.0..10.0)),
+                        &90.0,
+                        &0.0,
+                    );
                 }
                 if rand::thread_rng().gen_range(0..2) == 1 {
-                    cmds.spawn((
-                        SpriteBundle {
-                            transform: Transform::from_xyz(
-                                (CHUNK_WIDTH * (current_chunk.value + 1.0))
-                                    + (i as f32 * FLOOR_WIDTH
-                                        + random_platform_gap
-                                        + rand::thread_rng().gen_range(-60.0..30.0)),
-                                90.0,
-                                0.0,
-                            ),
-                            texture: asset_server.load("sprites/grass_3.png"),
-                            sprite: Sprite {
-                                custom_size: Some(Vec2::new(100.0, 98.0)),
-                                ..default()
-                            },
-                            ..default()
-                        },
-                        Background {},
-                    ));
+                    map_spawn_grass_3(
+                        &mut cmds,
+                        &start_chunk_value,
+                        &asset_server,
+                        &i,
+                        &(random_platform_gap + rand::thread_rng().gen_range(-60.0..10.0)),
+                        &90.0,
+                        &0.0,
+                    );
                 }
             }
         }
     }
 }
 
-pub fn generate_background_image(
-    mut cmds: Commands,
-    asset_server: Res<AssetServer>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
+pub fn map_spawn_large_platform(
+    cmds: &mut Commands,
+    start_chunk_value: &f32,
+    asset_server: &Res<AssetServer>,
+    &iteration: &i32,
+    y: &f32,
+    z: &f32,
 ) {
-    let window = window_query.get_single().unwrap();
+    cmds.spawn(Collider::cuboid(217.5, 40.0)).insert((
+        SpriteBundle {
+            transform: Transform::from_xyz(
+                start_chunk_value + (iteration as f32 * FLOOR_WIDTH),
+                1.0 * y,
+                1.0 * z,
+            ),
+            texture: asset_server.load("sprites/large_platform.png"),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(455.0, 100.0)),
+                ..default()
+            },
+            ..default()
+        },
+        Chunk {},
+    ));
+}
 
-    cmds.spawn(SpriteBundle {
-        transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0 - 150.0, 0.0),
-        texture: asset_server.load("sprites/background_image_1.png"),
-        ..default()
-    });
+pub fn map_spawn_normal_platform(
+    cmds: &mut Commands,
+    start_chunk_value: &f32,
+    asset_server: &Res<AssetServer>,
+    &iteration: &i32,
+    x_addition: &f32,
+    y: &f32,
+    z: &f32,
+) {
+    cmds.spawn(Collider::cuboid(113.5, 40.0)).insert((
+        SpriteBundle {
+            transform: Transform::from_xyz(
+                start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
+                1.0 * y,
+                1.0 * z,
+            ),
+            texture: asset_server.load("sprites/normal_platform.png"),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(227.0, 100.0)),
+                ..default()
+            },
+            ..default()
+        },
+        Chunk {},
+    ));
+}
+
+pub fn map_spawn_small_platform(
+    cmds: &mut Commands,
+    start_chunk_value: &f32,
+    asset_server: &Res<AssetServer>,
+    &iteration: &i32,
+    x_addition: &f32,
+    y: &f32,
+    z: &f32,
+) {
+    cmds.spawn(Collider::cuboid(58.5, 40.0)).insert((
+        SpriteBundle {
+            transform: Transform::from_xyz(
+                start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
+                1.0 * y,
+                1.0 * z,
+            ),
+            texture: asset_server.load("sprites/small_platform.png"),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(117.0, 100.0)),
+                ..default()
+            },
+            ..default()
+        },
+        Chunk {},
+    ));
+}
+
+pub fn map_spawn_grass_1(
+    cmds: &mut Commands,
+    start_chunk_value: &f32,
+    asset_server: &Res<AssetServer>,
+    &iteration: &i32,
+    x_addition: &f32,
+    y: &f32,
+    z: &f32,
+) {
+    cmds.spawn((
+        SpriteBundle {
+            transform: Transform::from_xyz(
+                start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
+                1.0 * y,
+                1.0 * z,
+            ),
+            texture: asset_server.load("sprites/grass_1.png"),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(100.0, 98.0)),
+                ..default()
+            },
+            ..default()
+        },
+        Background {},
+    ));
+}
+
+pub fn map_spawn_grass_3(
+    cmds: &mut Commands,
+    start_chunk_value: &f32,
+    asset_server: &Res<AssetServer>,
+    &iteration: &i32,
+    x_addition: &f32,
+    y: &f32,
+    z: &f32,
+) {
+    cmds.spawn((
+        SpriteBundle {
+            transform: Transform::from_xyz(
+                start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
+                1.0 * y,
+                1.0 * z,
+            ),
+            texture: asset_server.load("sprites/grass_3.png"),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(100.0, 98.0)),
+                ..default()
+            },
+            ..default()
+        },
+        Background {},
+    ));
+}
+pub fn map_spawn_rock_1(
+    cmds: &mut Commands,
+    start_chunk_value: &f32,
+    asset_server: &Res<AssetServer>,
+    &iteration: &i32,
+    x_addition: &f32,
+    y: &f32,
+    z: &f32,
+) {
+    cmds.spawn((
+        SpriteBundle {
+            transform: Transform::from_xyz(
+                start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
+                1.0 * y,
+                1.0 * z,
+            ),
+            texture: asset_server.load("sprites/rock_1.png"),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(250.0, 127.0)),
+                ..default()
+            },
+            ..default()
+        },
+        Background {},
+    ));
+}
+pub fn map_spawn_rock_3(
+    cmds: &mut Commands,
+    start_chunk_value: &f32,
+    asset_server: &Res<AssetServer>,
+    &iteration: &i32,
+    x_addition: &f32,
+    y: &f32,
+    z: &f32,
+) {
+    cmds.spawn((
+        SpriteBundle {
+            transform: Transform::from_xyz(
+                start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
+                1.0 * y,
+                1.0 * z,
+            ),
+            texture: asset_server.load("sprites/rock_3.png"),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(250.0, 214.0)),
+                ..default()
+            },
+            ..default()
+        },
+        Background {},
+    ));
 }
