@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::transform;
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
@@ -78,9 +79,9 @@ pub fn enemy_shoot_player(
                         },
                         EnemyBulletTimer(Timer::from_seconds(0.5, TimerMode::Once)),
                     ))
-                    .insert(KinematicCharacterController { ..default() })
-                    .insert(Collider::ball(8.0))
-                    .insert(RigidBody::KinematicPositionBased);
+                    .insert(KinematicCharacterController::default())
+                    .insert(RigidBody::KinematicPositionBased)
+                    .insert(Collider::ball(8.0));
                 }
             }
         }
@@ -144,12 +145,12 @@ pub fn enemy_bullet_direction(
 pub fn despawn_enemy_bullet_on_collision(
     mut cmds: Commands,
     enemy_bullet_query: Query<
-        (Entity, &KinematicCharacterControllerOutput),
+        (Entity, &KinematicCharacterControllerOutput, &Transform),
         (With<EnemyBullet>, Without<Player>),
     >,
     player_query: Query<Entity, (With<Player>, Without<EnemyBullet>)>,
 ) {
-    if let Ok((entity, output)) = enemy_bullet_query.get_single() {
+    if let Ok((entity, output, transform)) = enemy_bullet_query.get_single() {
         if let Ok(player_entity) = player_query.get_single() {
             if !output.collisions.is_empty() {
                 for collision in output.collisions.iter() {
@@ -157,6 +158,11 @@ pub fn despawn_enemy_bullet_on_collision(
                         println!("hit")
                     }
                 }
+                cmds.entity(entity).despawn()
+            }
+            let translation = transform.translation;
+
+            if translation.y < -40.0 {
                 cmds.entity(entity).despawn()
             }
         }

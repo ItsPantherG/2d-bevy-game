@@ -34,19 +34,8 @@ pub fn spawn_bullet(
                         ..default()
                     },
                 ))
-                .insert(KinematicCharacterController {
-                    filter_groups: Some(CollisionGroups {
-                        memberships: Group::GROUP_4,
-                        filters: Group::GROUP_2,
-                    }),
-                    ..default()
-                })
                 .insert(Collider::ball(10.0))
-                .insert(RigidBody::Dynamic)
-                .insert(CollisionGroups {
-                    memberships: Group::GROUP_4,
-                    filters: Group::GROUP_2,
-                });
+                .insert(RigidBody::KinematicPositionBased);
             }
         }
     }
