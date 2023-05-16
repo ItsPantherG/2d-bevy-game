@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use bevy::render::view::window;
+use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
@@ -24,6 +26,18 @@ pub fn spawn_map(mut cmds: Commands, asset_server: Res<AssetServer>) {
             Chunk {},
         ));
     }
+    cmds.spawn((
+        SpriteBundle {
+            transform: Transform::from_xyz(0.0, 300.0, 0.0),
+            texture: asset_server.load("sprites/background_1.png"),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(1920.0, 1180.0)),
+                ..default()
+            },
+            ..default()
+        },
+        Background {},
+    ));
 }
 
 pub fn despawn_map(
@@ -99,6 +113,15 @@ pub fn generate_random_chunk(
         let height_platform_2: f32 = rand::thread_rng().gen_range(3..4) as f32 * 100.0;
 
         let random_platform_gap = rand::thread_rng().gen_range(1..230) as f32;
+
+        map_spawn_background_1(
+            &mut cmds,
+            &start_chunk_value,
+            &asset_server,
+            &0.0,
+            &300.0,
+            &0.0,
+        );
 
         for i in 0..4 {
             // Platforms Spawning======================================================================
@@ -233,7 +256,7 @@ pub fn generate_random_chunk(
                         &start_chunk_value,
                         &asset_server,
                         &i,
-                        &(random_platform_gap + rand::thread_rng().gen_range(-60.0..10.0)),
+                        &(random_platform_gap + rand::thread_rng().gen_range(-60.0..0.0)),
                         &90.0,
                         &0.0,
                     );
@@ -244,7 +267,7 @@ pub fn generate_random_chunk(
                         &start_chunk_value,
                         &asset_server,
                         &i,
-                        &(random_platform_gap + rand::thread_rng().gen_range(-60.0..10.0)),
+                        &(random_platform_gap + rand::thread_rng().gen_range(-60.0..0.0)),
                         &90.0,
                         &0.0,
                     );
@@ -253,6 +276,8 @@ pub fn generate_random_chunk(
         }
     }
 }
+
+// Build Functions for game assets
 
 pub fn map_spawn_large_platform(
     cmds: &mut Commands,
@@ -432,6 +457,28 @@ pub fn map_spawn_rock_3(
             texture: asset_server.load("sprites/rock_3.png"),
             sprite: Sprite {
                 custom_size: Some(Vec2::new(250.0, 214.0)),
+                ..default()
+            },
+            ..default()
+        },
+        Background {},
+    ));
+}
+
+pub fn map_spawn_background_1(
+    cmds: &mut Commands,
+    start_chunk_value: &f32,
+    asset_server: &Res<AssetServer>,
+    x_addition: &f32,
+    y: &f32,
+    z: &f32,
+) {
+    cmds.spawn((
+        SpriteBundle {
+            transform: Transform::from_xyz(start_chunk_value + x_addition, 1.0 * y, 1.0 * z),
+            texture: asset_server.load("sprites/background_1.png"),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(1920.0, 1180.0)),
                 ..default()
             },
             ..default()

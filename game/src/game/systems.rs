@@ -37,7 +37,7 @@ pub fn despawn_player_on_fall(
     mut next_game_state: ResMut<NextState<GameState>>,
 ) {
     if let Ok((entity, transform_player)) = player_query.get_single() {
-        if transform_player.translation.y < -10.0 {
+        if transform_player.translation.y < -500.0 {
             for map_entity in map_query.iter() {
                 cmds.entity(map_entity).despawn();
             }

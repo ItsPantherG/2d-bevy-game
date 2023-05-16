@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct Player {}
+pub struct Player {
+    pub health: i32,
+}
 
 #[derive(Component)]
 pub struct AnimationIndices {

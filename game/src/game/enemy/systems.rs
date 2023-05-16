@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use rand::prelude::*;
 
 use super::components::*;
 use super::resources::*;
@@ -15,26 +16,28 @@ pub fn spawn_emeny_salt_thrower(
     current_chunk: Res<CurrentChunk>,
 ) {
     if current_chunk.is_changed() {
-        cmds.spawn((
-            SpriteBundle {
-                transform: Transform::from_xyz(
-                    (current_chunk.value * CHUNK_WIDTH) + CHUNK_WIDTH,
-                    60.0,
-                    10.0,
-                ),
-                texture: asset_server.load("sprites/SlimeOrange_00000.png"),
-                sprite: Sprite {
-                    custom_size: Some(Vec2::new(100.0, 80.0)),
+        if rand::thread_rng().gen_range(0..2) == 1 {
+            cmds.spawn((
+                SpriteBundle {
+                    transform: Transform::from_xyz(
+                        (current_chunk.value * CHUNK_WIDTH) + CHUNK_WIDTH,
+                        60.0,
+                        10.0,
+                    ),
+                    texture: asset_server.load("sprites/SlimeOrange_00000.png"),
+                    sprite: Sprite {
+                        custom_size: Some(Vec2::new(100.0, 80.0)),
+                        ..default()
+                    },
                     ..default()
                 },
-                ..default()
-            },
-            EnemySaltThrower {},
-        ))
-        .insert(RigidBody::Fixed)
-        .insert(Collider::capsule_x(20.0, 20.0))
-        .insert(LockedAxes::ROTATION_LOCKED)
-        .insert(GravityScale(10.0));
+                EnemySaltThrower {},
+            ))
+            .insert(RigidBody::Fixed)
+            .insert(Collider::capsule_x(20.0, 20.0))
+            .insert(LockedAxes::ROTATION_LOCKED)
+            .insert(GravityScale(10.0));
+        }
     }
 }
 
@@ -75,7 +78,7 @@ pub fn enemy_shoot_player(
                         },
                         EnemyBulletTimer(Timer::from_seconds(0.5, TimerMode::Once)),
                     ))
-                    .insert(KinematicCharacterController::default())
+                    .insert(KinematicCharacterController { ..default() })
                     .insert(Collider::ball(8.0))
                     .insert(RigidBody::KinematicPositionBased);
                 }
@@ -149,16 +152,11 @@ pub fn despawn_enemy_bullet_on_collision(
     if let Ok((entity, output)) = enemy_bullet_query.get_single() {
         if let Ok(player_entity) = player_query.get_single() {
             if !output.collisions.is_empty() {
-                if output.collisions[0].entity == player_entity {
-                    cmds.entity(entity).despawn()
+                for collision in output.collisions.iter() {
+                    if collision.entity == player_entity {
+                        println!("hit")
+                    }
                 }
-            }
-
-            if output.grounded {
-                cmds.entity(entity).despawn()
-            }
-
-            if output.effective_translation.y < -10.0 {
                 cmds.entity(entity).despawn()
             }
         }

@@ -37,7 +37,8 @@ impl Plugin for PlayerPlugin {
                 (
                     player_move,
                     states,
-                    player_die_on_hit,
+                    player_lose_hp_on_hit,
+                    player_die_on_zero_hp,
                     // OnUpdate Systems
                     jump_timer_start.in_set(OnUpdate(MovementState::Jumping)),
                     air_dash_timer_start.in_set(OnUpdate(MovementState::AirDash)),
