@@ -287,22 +287,24 @@ pub fn map_spawn_large_platform(
     y: &f32,
     z: &f32,
 ) {
-    cmds.spawn(Collider::cuboid(217.5, 40.0)).insert((
-        SpriteBundle {
-            transform: Transform::from_xyz(
-                start_chunk_value + (iteration as f32 * FLOOR_WIDTH),
-                1.0 * y,
-                1.0 * z,
-            ),
-            texture: asset_server.load("sprites/large_platform.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(455.0, 100.0)),
+    cmds.spawn(Collider::cuboid(217.5, 40.0))
+        .insert((
+            SpriteBundle {
+                transform: Transform::from_xyz(
+                    start_chunk_value + (iteration as f32 * FLOOR_WIDTH),
+                    1.0 * y,
+                    1.0 * z,
+                ),
+                texture: asset_server.load("sprites/large_platform.png"),
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(455.0, 100.0)),
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        },
-        Chunk {},
-    ));
+            Chunk {},
+        ))
+        .insert(Name::new("large_platform"));
 }
 
 pub fn map_spawn_normal_platform(
@@ -314,22 +316,24 @@ pub fn map_spawn_normal_platform(
     y: &f32,
     z: &f32,
 ) {
-    cmds.spawn(Collider::cuboid(113.5, 40.0)).insert((
-        SpriteBundle {
-            transform: Transform::from_xyz(
-                start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
-                1.0 * y,
-                1.0 * z,
-            ),
-            texture: asset_server.load("sprites/normal_platform.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(227.0, 100.0)),
+    cmds.spawn(Collider::cuboid(113.5, 40.0))
+        .insert((
+            SpriteBundle {
+                transform: Transform::from_xyz(
+                    start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
+                    1.0 * y,
+                    1.0 * z,
+                ),
+                texture: asset_server.load("sprites/normal_platform.png"),
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(227.0, 100.0)),
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        },
-        Chunk {},
-    ));
+            Chunk {},
+        ))
+        .insert(Name::new("normal_platform"));
 }
 
 pub fn map_spawn_small_platform(
@@ -341,22 +345,24 @@ pub fn map_spawn_small_platform(
     y: &f32,
     z: &f32,
 ) {
-    cmds.spawn(Collider::cuboid(58.5, 40.0)).insert((
-        SpriteBundle {
-            transform: Transform::from_xyz(
-                start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
-                1.0 * y,
-                1.0 * z,
-            ),
-            texture: asset_server.load("sprites/small_platform.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(117.0, 100.0)),
+    cmds.spawn(Collider::cuboid(58.5, 40.0))
+        .insert((
+            SpriteBundle {
+                transform: Transform::from_xyz(
+                    start_chunk_value + (iteration as f32 * FLOOR_WIDTH + x_addition),
+                    1.0 * y,
+                    1.0 * z,
+                ),
+                texture: asset_server.load("sprites/small_platform.png"),
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(117.0, 100.0)),
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        },
-        Chunk {},
-    ));
+            Chunk {},
+        ))
+        .insert(Name::new("small_platform"));
 }
 
 pub fn map_spawn_grass_1(
@@ -410,7 +416,8 @@ pub fn map_spawn_grass_3(
             ..default()
         },
         Background {},
-    ));
+    ))
+    .insert(Name::new("grass_3"));
 }
 pub fn map_spawn_rock_1(
     cmds: &mut Commands,

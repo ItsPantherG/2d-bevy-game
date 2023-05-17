@@ -1,14 +1,19 @@
 use bevy::prelude::*;
 
 use super::super::components::*;
-use crate::game::score::resources::*;
 
 pub fn spawn_game_ui(mut cmds: Commands, asset_server: Res<AssetServer>) {
     let _game_ui_entity = build_game_ui(&mut cmds, &asset_server);
+    let _player_health_bar = build_player_health_bar(&mut cmds, &asset_server);
 }
 
 pub fn despawn_game_ui(mut cmds: Commands, game_ui_query: Query<Entity, With<GameUi>>) {
     if let Ok(entity) = game_ui_query.get_single() {
+        cmds.entity(entity).despawn_recursive()
+    }
+}
+pub fn despawn_health_bar(mut cmds: Commands, health_bar_query: Query<Entity, With<HealthBar>>) {
+    if let Ok(entity) = health_bar_query.get_single() {
         cmds.entity(entity).despawn_recursive()
     }
 }
@@ -92,10 +97,25 @@ pub fn build_game_ui(cmds: &mut Commands, asset_server: &Res<AssetServer>) -> En
     game_ui_entity
 }
 
-pub fn update_score(score: Res<PlayerScore>, mut score_query: Query<&mut Text, With<ShowScore>>) {
-    if score.is_changed() {
-        if let Ok(mut text) = score_query.get_single_mut() {
-            text.sections[0].value = format!("score: {}", score.value.to_string())
-        }
-    }
+pub fn build_player_health_bar(cmds: &mut Commands, asset_server: &Res<AssetServer>) -> Entity {
+    let player_health_bar_entity = cmds
+        .spawn((
+            SpriteBundle {
+                transform: Transform {
+                    translation: Vec3::new(100.0, 100.0, 101.0),
+                    ..default()
+                },
+                texture: asset_server.load("sprites/icons/BarV3_ProgressBar.png"),
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(80.0, 8.0)),
+                    ..default()
+                },
+                ..default()
+            },
+            HealthBar {},
+        ))
+        .insert(Name::new("player_health"))
+        .id();
+
+    player_health_bar_entity
 }
