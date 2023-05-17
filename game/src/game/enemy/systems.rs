@@ -76,12 +76,14 @@ pub fn enemy_shoot_player(
                         EnemyBullet {
                             desired_direction: player_transform.translation.x
                                 - enemy_transform.translation.x,
+                            is_hit_player: false,
                         },
                         EnemyBulletTimer(Timer::from_seconds(0.5, TimerMode::Once)),
                     ))
-                    .insert(KinematicCharacterController::default())
                     .insert(RigidBody::KinematicPositionBased)
-                    .insert(Collider::ball(8.0));
+                    .insert(KinematicCharacterController::default())
+                    .insert(Collider::ball(8.0))
+                    .insert(CollisionGroups::new(Group::GROUP_32, Group::GROUP_32));
                 }
             }
         }
@@ -144,25 +146,21 @@ pub fn enemy_bullet_direction(
 
 pub fn despawn_enemy_bullet_on_collision(
     mut cmds: Commands,
-    enemy_bullet_query: Query<
-        (Entity, &KinematicCharacterControllerOutput, &Transform),
-        (With<EnemyBullet>, Without<Player>),
+    enemy_bullet_query: Query<(Entity, &Transform), (With<EnemyBullet>, Without<Player>)>,
+    enemy_bullet_despawn_timer_query: Query<
+        &EnemyBulletTimer,
+        (With<EnemyBulletDespawnTimer>, Without<EnemyBulletTimer>),
     >,
-    player_query: Query<Entity, (With<Player>, Without<EnemyBullet>)>,
 ) {
-    if let Ok((entity, output, transform)) = enemy_bullet_query.get_single() {
-        if let Ok(player_entity) = player_query.get_single() {
-            if !output.collisions.is_empty() {
-                for collision in output.collisions.iter() {
-                    if collision.entity == player_entity {
-                        println!("hit")
-                    }
-                }
-                cmds.entity(entity).despawn()
-            }
-            let translation = transform.translation;
+    if let Ok((entity, transform)) = enemy_bullet_query.get_single() {
+        let translation = transform.translation;
 
-            if translation.y < -40.0 {
+        if translation.y < -40.0 {
+            cmds.entity(entity).despawn()
+        }
+
+        for timer in enemy_bullet_despawn_timer_query.iter() {
+            if timer.finished() {
                 cmds.entity(entity).despawn()
             }
         }

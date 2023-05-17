@@ -30,7 +30,7 @@ impl Plugin for GamePlugin {
             .add_plugin(CameraPlugin)
             .add_plugin(PlayerPlugin)
             .add_system(change_paused_game_state.in_set(OnUpdate(GameState::Game)))
-            .add_system(despawn_player_on_fall.in_set(OnUpdate(GameState::Game)));
+            .add_system(player_die.in_set(OnUpdate(GameState::Game)));
     }
 }
 

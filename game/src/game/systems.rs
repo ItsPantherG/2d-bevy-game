@@ -29,15 +29,15 @@ pub fn change_paused_game_state(
     }
 }
 
-pub fn despawn_player_on_fall(
+pub fn player_die(
     mut cmds: Commands,
-    player_query: Query<(Entity, &Transform), With<Player>>,
+    player_query: Query<(Entity, &Transform, &Player), With<Player>>,
     map_query: Query<Entity, With<Chunk>>,
     mut current_chunk: ResMut<CurrentChunk>,
     mut next_game_state: ResMut<NextState<GameState>>,
 ) {
-    if let Ok((entity, transform_player)) = player_query.get_single() {
-        if transform_player.translation.y < -500.0 {
+    if let Ok((entity, transform_player, player)) = player_query.get_single() {
+        if transform_player.translation.y < -500.0 || player.health <= 0 {
             for map_entity in map_query.iter() {
                 cmds.entity(map_entity).despawn();
             }

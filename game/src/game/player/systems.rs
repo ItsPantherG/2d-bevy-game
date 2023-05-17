@@ -282,31 +282,29 @@ pub fn despawn_flame(mut cmds: Commands, flame_query: Query<Entity, With<Animati
 }
 
 pub fn player_lose_hp_on_hit(
-    bullet_query: Query<&KinematicCharacterControllerOutput, (With<EnemyBullet>, Without<Player>)>,
+    mut cmds: Commands,
+    mut bullet_query: Query<
+        (
+            Entity,
+            &KinematicCharacterControllerOutput,
+            &mut EnemyBullet,
+        ),
+        (With<EnemyBullet>, Without<Player>),
+    >,
     mut player_query: Query<(Entity, &mut Player), (With<Player>, Without<EnemyBullet>)>,
 ) {
     if let Ok((player_entity, mut player)) = player_query.get_single_mut() {
-        for bullet_output in bullet_query.iter() {
+        for (entity, bullet_output, mut bullet) in bullet_query.iter_mut() {
             if !bullet_output.collisions.is_empty() {
                 for collision in bullet_output.collisions.iter() {
-                    if collision.entity == player_entity {
-                        player.health -= 20
+                    if collision.entity == player_entity && !bullet.is_hit_player {
+                        println!("hit");
+                        player.health -= 20;
+                        bullet.is_hit_player = true;
                     }
                 }
+                cmds.entity(entity).despawn();
             }
-        }
-    }
-}
-
-pub fn player_die_on_zero_hp(
-    mut cmds: Commands,
-    player_query: Query<(Entity, &Player), With<Player>>,
-    mut next_game_state: ResMut<NextState<GameState>>,
-) {
-    if let Ok((entity, player)) = player_query.get_single() {
-        if player.health <= 0 {
-            cmds.entity(entity).despawn();
-            next_game_state.set(GameState::MainMenu)
         }
     }
 }
